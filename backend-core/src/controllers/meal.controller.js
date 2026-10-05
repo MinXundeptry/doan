@@ -1,48 +1,71 @@
 const mealService = require('../services/meal.service');
 
-exports.logMeal = async (req, res) => {
+exports.logMeal = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const mealData = { ...req.body, user_id: userId };
-    const newMeal = await mealService.createMeal(mealData);
-
+    const result = await mealService.logMeal(req.user.id, req.body);
     res.status(201).json({
       status: 'success',
-      message: 'Ghi nhận bữa ăn thành công!',
-      data: newMeal
+      message: 'Ghi nhận bữa ăn thành công',
+      data: result
     });
   } catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+    next(error);
   }
 };
 
-exports.getDailyMeals = async (req, res) => {
+exports.getDailySummary = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const { date } = req.query; // YYYY-MM-DD
-    const summary = await mealService.getMealsByDate(userId, date);
-
+    const { date } = req.query;
+    const result = await mealService.getDailySummary(req.user.id, date);
     res.status(200).json({
       status: 'success',
-      data: summary
+      data: result
     });
   } catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+    next(error);
   }
 };
 
-exports.getCalorieProgress = async (req, res) => {
+exports.updateMealItem = async (req, res, next) => {
   try {
-    const userId = req.user.id;
-    const { date } = req.query; // YYYY-MM-DD (không bắt buộc)
-
-    const progress = await mealService.getCalorieProgress(userId, date);
-
+    const { itemId } = req.params;
+    const { amount_gram: amountGram } = req.body;
+    const result = await mealService.updateMealItemQuantity(
+      req.user.id,
+      itemId,
+      amountGram
+    );
     res.status(200).json({
       status: 'success',
-      data: progress
+      data: result
     });
   } catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+    next(error);
+  }
+};
+
+exports.deleteMealItem = async (req, res, next) => {
+  try {
+    const { itemId } = req.params;
+    const result = await mealService.deleteMealItem(req.user.id, itemId);
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+exports.deleteMeal = async (req, res, next) => {
+  try {
+    const { mealId } = req.params;
+    const result = await mealService.deleteMeal(req.user.id, mealId);
+    res.status(200).json({
+      status: 'success',
+      data: result
+    });
+  } catch (error) {
+    next(error);
   }
 };
