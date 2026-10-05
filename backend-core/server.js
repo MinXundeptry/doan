@@ -4,6 +4,7 @@ require('dotenv').config();
 
 const pool = require('./src/config/database');
 const routesV1 = require('./src/routes/v1'); // Gọi router trung tâm v1
+const { notFound, handleError } = require('./src/middlewares/error.middleware');
 
 const app = express();
 
@@ -25,11 +26,19 @@ app.get('/api/v1/health', async (req, res) => {
       db_status: rows[0].result === 2 ? 'Connected' : 'Disconnected'
     });
   } catch (error) {
-    res.status(500).json({ status: 'error', message: error.message });
+    console.error('Health check database error:', error);
+    res.status(500).json({ status: 'error', message: 'Không thể kết nối cơ sở dữ liệu.' });
   }
 });
 
-const PORT = process.env.PORT || 5000;
-app.listen(PORT, () => {
-  console.log(`🚀 [Node.js Core] Server đang chạy tại: http://localhost:${PORT}`);
-});
+app.use(notFound);
+app.use(handleError);
+
+if (require.main === module) {
+  const PORT = process.env.PORT || 5000;
+  app.listen(PORT, () => {
+    console.log(`🚀 [Node.js Core] Server đang chạy tại: http://localhost:${PORT}`);
+  });
+}
+
+module.exports = app;
