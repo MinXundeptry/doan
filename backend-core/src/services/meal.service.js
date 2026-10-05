@@ -1,5 +1,4 @@
-const db = require('../config/db.config');
-
+const mealRepository = require('../repositories/meal.repository');
 
 /**
  * Tính phần trăm Calo đã nạp trong ngày so với TDEE của người dùng
@@ -9,25 +8,18 @@ const db = require('../config/db.config');
 exports.getCalorieProgress = async (userId, date) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
-  // 1. Lấy chỉ số TDEE từ bảng user_profiles
-  const [userProfiles] = await db.query(
-    'SELECT tdee FROM user_profiles WHERE user_id = ?',
-    [userId]
-  );
+  // 1. Lấy chỉ số TDEE từ profile người dùng thông qua Repository
+  const userProfile = await mealRepository.getUserTDEE(userId);
 
-  if (userProfiles.length === 0) {
+  if (!userProfile) {
     throw new Error('Chưa tìm thấy hồ sơ thể trạng người dùng! Vui lòng cập nhật TDEE.');
   }
 
-  const targetTDEE = Number(userProfiles[0].tdee) || 2000; // Mặc định 2000 calo nếu chưa tính
+  const targetTDEE = Number(userProfile.tdee) || 2000; // Mặc định 2000 calo nếu chưa thiết lập
 
-  // 2. Lấy tổng số Calo đã nạp trong ngày
-  const [mealSummary] = await db.query(
-    'SELECT SUM(calories) AS total_calories FROM meals WHERE user_id = ? AND logged_date = ?',
-    [userId, queryDate]
-  );
-
-  const consumedCalories = Number(mealSummary[0].total_calories) || 0;
+  // 2. Lấy tổng số Calo đã nạp trong ngày từ Repository
+  const totalCalories = await mealRepository.getTotalCaloriesByDate(userId, queryDate);
+  const consumedCalories = Number(totalCalories) || 0;
 
   // 3. Tính toán các chỉ số
   const percentage = Number(((consumedCalories / targetTDEE) * 100).toFixed(1));
@@ -46,35 +38,31 @@ exports.getCalorieProgress = async (userId, date) => {
     target_tdee: targetTDEE,
     consumed_calories: Number(consumedCalories.toFixed(1)),
     remaining_calories: remainingCalories,
-    percentage: percentage, // Ví dụ: 78.5 (%)
+    percentage: percentage,
     status: status
   };
 };
+
 /**
  * Ghi nhận một món ăn mới vào CSDL
  */
 exports.createMeal = async (mealData) => {
   const {
     user_id,
-    meal_type, // 'breakfast', 'lunch', 'dinner', 'snack'
+    meal_type,
     food_name,
     calories,
     protein = 0,
     carbs = 0,
     fat = 0,
     serving_size = 1,
-    date // 'YYYY-MM-DD', nếu không truyền sẽ lấy ngày hiện tại
+    date
   } = mealData;
 
   // Chuẩn hóa ngày (YYYY-MM-DD)
   const mealDate = date || new Date().toISOString().split('T')[0];
 
-  const query = `
-    INSERT INTO meals (user_id, meal_type, food_name, calories, protein, carbs, fat, serving_size, logged_date)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
-  `;
-
-  const [result] = await db.query(query, [
+  const newMealId = await mealRepository.create({
     user_id,
     meal_type,
     food_name,
@@ -83,11 +71,11 @@ exports.createMeal = async (mealData) => {
     carbs,
     fat,
     serving_size,
-    mealDate
-  ]);
+    logged_date: mealDate
+  });
 
   return {
-    id: result.insertId,
+    id: newMealId,
     user_id,
     meal_type,
     food_name,
@@ -106,14 +94,8 @@ exports.createMeal = async (mealData) => {
 exports.getMealsByDate = async (userId, date) => {
   const queryDate = date || new Date().toISOString().split('T')[0];
 
-  // Truy vấn tất cả món ăn trong ngày của user
-  const [meals] = await db.query(
-    `SELECT id, meal_type, food_name, calories, protein, carbs, fat, serving_size, logged_date, created_at
-     FROM meals
-     WHERE user_id = ? AND logged_date = ?
-     ORDER BY created_at ASC`,
-    [userId, queryDate]
-  );
+  // Truy vấn tất cả món ăn trong ngày của user qua Repository
+  const meals = await mealRepository.findByDate(userId, queryDate);
 
   // Cấu trúc dữ liệu trả về cho Client
   const dailySummary = {
@@ -134,13 +116,11 @@ exports.getMealsByDate = async (userId, date) => {
 
   // Gom nhóm bữa ăn và tính tổng chỉ số dinh dưỡng
   meals.forEach((meal) => {
-    // Cộng dồn dinh dưỡng vào tổng ngày
     dailySummary.totals.calories += Number(meal.calories) || 0;
     dailySummary.totals.protein += Number(meal.protein) || 0;
     dailySummary.totals.carbs += Number(meal.carbs) || 0;
     dailySummary.totals.fat += Number(meal.fat) || 0;
 
-    // Phân loại món ăn vào đúng bữa
     if (dailySummary.meals_by_type[meal.meal_type]) {
       dailySummary.meals_by_type[meal.meal_type].push(meal);
     } else {
@@ -161,12 +141,9 @@ exports.getMealsByDate = async (userId, date) => {
  * Xóa món ăn khỏi nhật ký
  */
 exports.deleteMeal = async (mealId, userId) => {
-  const [result] = await db.query(
-    'DELETE FROM meals WHERE id = ? AND user_id = ?',
-    [mealId, userId]
-  );
+  const isDeleted = await mealRepository.delete(mealId, userId);
 
-  if (result.affectedRows === 0) {
+  if (!isDeleted) {
     throw new Error('Không tìm thấy món ăn hoặc bạn không có quyền xóa!');
   }
 
