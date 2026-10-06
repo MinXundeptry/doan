@@ -9,6 +9,7 @@ const mealRoutes = require('./meal.routes');
 router.use('/auth', authRoutes);
 router.use('/user', userRoutes);
 router.use('/foods', foodRoutes);
-router.use('/meals', mealRoutes);
+router.use('/meals', mealRoutes);   // -> Endpoint: /api/v1/meals/...
+router.use('/ai', require('./ai.routes')); // -> Endpoint: /api/v1/ai/...
 
 module.exports = router;

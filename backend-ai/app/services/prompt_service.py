@@ -51,13 +51,13 @@ def _format_profile(p: UserProfile | None) -> str:
         return "Hồ sơ người dùng: chưa có thông tin."
     rows = [
         ("Tuổi", p.age),
-        ("Giới tính", GENDER_VI.get(p.gender) if p.gender else None),
+        ("Giới tính", GENDER_VI.get(p.gender, p.gender) if p.gender else None),
         ("Chiều cao (cm)", p.height_cm),
         ("Cân nặng (kg)", p.weight_kg),
-        ("Mức vận động", ACTIVITY_VI.get(p.activity_level) if p.activity_level else None),
+        ("Mức vận động", ACTIVITY_VI.get(p.activity_level, p.activity_level) if p.activity_level else None),
         ("BMR (kcal)", p.bmr),
         ("TDEE (kcal)", p.tdee),
-        ("Mục tiêu", GOAL_VI.get(p.goal) if p.goal else None),
+        ("Mục tiêu", GOAL_VI.get(p.goal, p.goal) if p.goal else None),
         ("Calo mục tiêu mỗi ngày (kcal)", p.target_calories),
     ]
     lines = [f"- {k}: {v}" for k, v in rows if v not in (None, "", 0)]
