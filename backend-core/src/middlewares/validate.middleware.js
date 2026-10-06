@@ -1,32 +1,19 @@
-/**
- * Middleware kiểm tra (validate) dữ liệu đầu vào dựa trên Joi schema
- * @param {Object} schema - Joi schema object từ DTO
- */
-const validateMiddleware = (schema) => {
-  return (req, res, next) => {
-    if (!schema) {
-      return next();
-    }
+const validate = (schema, property = 'body') => (req, res, next) => {
+  const { error, value } = schema.validate(req[property], {
+    abortEarly: false,
+    convert: true
+  });
 
-    // Validate req.body với schema
-    const { error, value } = schema.validate(req.body, {
-      abortEarly: false, // Trả về tất cả các lỗi thay vì dừng ở lỗi đầu tiên
-      stripUnknown: true, // Loại bỏ các trường thừa không nằm trong schema
-    });
+  if (error) {
+    const validationError = new Error(
+      error.details.map((detail) => detail.message).join(' ')
+    );
+    validationError.statusCode = 400;
+    return next(validationError);
+  }
 
-    if (error) {
-      const errorDetails = error.details.map((detail) => detail.message);
-      return res.status(400).json({
-        success: false,
-        message: 'Dữ liệu đầu vào không hợp lệ',
-        errors: errorDetails,
-      });
-    }
-
-    // Gán dữ liệu đã qua xử lý/clean back vào req.body
-    req.body = value;
-    next();
-  };
+  req[property] = value;
+  return next();
 };
 
-module.exports = validateMiddleware;
+module.exports = validate;

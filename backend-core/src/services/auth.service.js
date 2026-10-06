@@ -5,7 +5,7 @@ const { calculateBMR, calculateTDEE } = require('../utils/nutritionCalc');
 
 class AuthService {
   async register(data) {
-    const { email, password, full_name, age, gender, height_cm, weight_kg, activity_level, role } = data;
+    const { email, password, full_name, age, gender, height_cm, weight_kg, activity_level } = data;
 
     // 1. Kiểm tra email tồn tại
     const existingUser = await userRepository.findByEmail(email);
@@ -18,7 +18,7 @@ class AuthService {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // 3. Lưu bảng users
-    const userId = await userRepository.createUser(email, passwordHash, role || 'user');
+    const userId = await userRepository.createUser(email, passwordHash, 'user');
 
     // 4. Tính toán BMR và TDEE
     const bmr = calculateBMR(gender, weight_kg, height_cm, age);
