@@ -5,18 +5,15 @@ from pydantic import BaseModel, Field
 
 class UserProfile(BaseModel):
     full_name: str | None = None
-    age: int | None = None
-    gender: Literal["male", "female"] | None = None
+    age: float | None = None
+    gender: str | None = None
     height_cm: float | None = None
     weight_kg: float | None = None
-    activity_level: Literal[
-        "sedentary", "lightly_active", "moderately_active", "very_active"
-    ] | None = None
+    activity_level: str | None = None
     bmr: float | None = None
     tdee: float | None = None
-    goal: Literal["lose", "maintain", "gain"] | None = None
+    goal: str | None = None
     target_calories: float | None = None
-
 
 class ChatMessage(BaseModel):
     role: Literal["user", "assistant"]
