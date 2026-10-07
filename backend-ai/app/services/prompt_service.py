@@ -1,7 +1,20 @@
 from app.schemas.chat_schema import MealSummary, UserProfile
 
-def get_vision_prompt() -> str:
-    return "Hãy nhận diện các món ăn trong ảnh và ước tính giá trị dinh dưỡng."
+def get_vision_prompt(
+    food_name: str | None = None, amount_gram: float | None = None
+) -> str:
+    instructions = ["Hãy nhận diện các món ăn trong ảnh và ước tính giá trị dinh dưỡng."]
+    if food_name:
+        instructions.append(
+            f'Người dùng khai báo tên món là "{food_name}". Ưu tiên tên này nếu phù hợp với ảnh.'
+        )
+    if amount_gram is not None:
+        instructions.append(
+            f"Người dùng khai báo khẩu phần nặng {amount_gram:g} gram. "
+            "Hãy trả về lượng và dinh dưỡng ước tính của khẩu phần nhìn thấy trong ảnh; "
+            "hệ thống sẽ tự điều chỉnh kết quả theo khối lượng người dùng khai báo."
+        )
+    return " ".join(instructions)
 
 VISION_SYSTEM_PROMPT = """Bạn là chuyên gia dinh dưỡng, chuyên nhận diện món ăn Việt Nam và quốc tế qua ảnh.
 Quy tắc:

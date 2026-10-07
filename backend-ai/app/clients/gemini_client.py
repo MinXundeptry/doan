@@ -11,9 +11,9 @@ logger = logging.getLogger(__name__)
 client = genai.Client(api_key=settings.gemini_api_key)
 
 # Lỗi tạm thời của server -> đáng thử lại
-RETRYABLE_CODES = {500, 503, 504}
-# Hết quota của model này -> thử lại vô ích, chuyển sang model khác
-SWITCH_MODEL_CODES = {429}
+RETRYABLE_CODES = {500, 502, 503, 504}
+# Model hết quota hoặc không khả dụng -> chuyển sang model khác
+SWITCH_MODEL_CODES = {404, 429}
 MAX_ATTEMPTS = 3
 
 
