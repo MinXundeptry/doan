@@ -1,5 +1,6 @@
 const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
+const { DEFAULT_ROLE } = require('../constants/roles');
 const userRepository = require('../repositories/user.repository');
 const { calculateBMR, calculateTDEE } = require('../utils/nutritionCalc');
 
@@ -18,7 +19,7 @@ class AuthService {
     const passwordHash = await bcrypt.hash(password, salt);
 
     // 3. Lưu bảng users
-    const userId = await userRepository.createUser(email, passwordHash, 'user');
+    const userId = await userRepository.createUser(email, passwordHash, DEFAULT_ROLE);
 
     // 4. Tính toán BMR và TDEE
     const bmr = calculateBMR(gender, weight_kg, height_cm, age);

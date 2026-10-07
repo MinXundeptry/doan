@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 const foodController = require('../../controllers/food.controller');
 const { verifyToken } = require('../../middlewares/auth.middleware');
+const { requirePermission } = require('../../middlewares/role.middleware');
 const validateMiddleware = require('../../middlewares/validate.middleware');
 const { createFoodDto, updateFoodDto } = require('../../dtos/food.dto');
 
@@ -10,8 +11,25 @@ router.get('/', foodController.getFoods);
 router.get('/:id', foodController.getFoodById);
 
 // Protected routes (Cần đăng nhập - dùng verifyToken)
-router.post('/', verifyToken, validateMiddleware(createFoodDto), foodController.createFood);
-router.put('/:id', verifyToken, validateMiddleware(updateFoodDto), foodController.updateFood);
-router.delete('/:id', verifyToken, foodController.deleteFood);
+router.post(
+  '/',
+  verifyToken,
+  requirePermission('foods:manage'),
+  validateMiddleware(createFoodDto),
+  foodController.createFood
+);
+router.put(
+  '/:id',
+  verifyToken,
+  requirePermission('foods:manage'),
+  validateMiddleware(updateFoodDto),
+  foodController.updateFood
+);
+router.delete(
+  '/:id',
+  verifyToken,
+  requirePermission('foods:manage'),
+  foodController.deleteFood
+);
 
 module.exports = router;

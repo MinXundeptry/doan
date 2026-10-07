@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const { requirePermission } = require('./role.middleware');
 
 const verifyToken = (req, res, next) => {
   const authHeader = req.headers['authorization'];
@@ -23,16 +24,7 @@ const verifyToken = (req, res, next) => {
   }
 };
 
-const requireAdmin = (req, res, next) => {
-  if (req.user && req.user.role === 'admin') {
-    next();
-  } else {
-    return res.status(403).json({
-      status: 'error',
-      message: 'Bạn không có quyền truy cập tính năng Quản trị này!'
-    });
-  }
-};
+const requireAdmin = requirePermission('users:read');
 
 module.exports = {
   verifyToken,

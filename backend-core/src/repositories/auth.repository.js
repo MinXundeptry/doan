@@ -1,4 +1,5 @@
 const db = require('../config/database');
+const { DEFAULT_ROLE } = require('../constants/roles');
 
 class UserRepository {
   // Tìm người dùng theo Email
@@ -20,7 +21,7 @@ class UserRepository {
   }
 
   // Tạo tài khoản mới trong bảng users
-  async createUser(email, passwordHash, role = 'user') {
+  async createUser(email, passwordHash, role = DEFAULT_ROLE) {
     const query = `
       INSERT INTO users (email, password_hash, role)
       VALUES (?, ?, ?)
