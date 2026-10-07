@@ -8,6 +8,7 @@ CREATE TABLE IF NOT EXISTS `users` (
   `email` VARCHAR(100) NOT NULL UNIQUE,
   `password_hash` VARCHAR(255) NOT NULL,
   `role` ENUM('user', 'admin') DEFAULT 'user',
+  `is_active` TINYINT(1) NOT NULL DEFAULT 1,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
@@ -24,6 +25,8 @@ CREATE TABLE IF NOT EXISTS `user_profiles` (
   `activity_level` ENUM('sedentary', 'lightly_active', 'moderately_active', 'very_active') DEFAULT 'sedentary',
   `bmr` DECIMAL(7,2) DEFAULT 0,
   `tdee` DECIMAL(7,2) DEFAULT 0,
+  `goal` ENUM('lose', 'maintain', 'gain') NOT NULL DEFAULT 'maintain',
+  `target_calories` DECIMAL(7,2) NOT NULL DEFAULT 0,
   `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
   `updated_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
@@ -78,6 +81,21 @@ CREATE TABLE IF NOT EXISTS `weight_logs` (
   `user_id` INT NOT NULL,
   `weight_kg` DECIMAL(5,2) NOT NULL,
   `logged_at` DATE NOT NULL,
+  FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
+) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
+
+-- 7. Nhật ký hoạt động thể chất (activity_logs)
+CREATE TABLE IF NOT EXISTS `activity_logs` (
+  `id` INT AUTO_INCREMENT PRIMARY KEY,
+  `user_id` INT NOT NULL,
+  `activity_type` VARCHAR(40) NOT NULL,
+  `duration_minutes` SMALLINT UNSIGNED NOT NULL,
+  `met_value` DECIMAL(4,2) NOT NULL,
+  `weight_kg` DECIMAL(5,2) NOT NULL,
+  `calories_burned` DECIMAL(7,2) NOT NULL,
+  `activity_date` DATE NOT NULL,
+  `created_at` TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  INDEX `idx_activity_user_date` (`user_id`, `activity_date`),
   FOREIGN KEY (`user_id`) REFERENCES `users`(`id`) ON DELETE CASCADE
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_unicode_ci;
 

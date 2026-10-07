@@ -9,7 +9,7 @@ exports.getProfile = async (req, res) => {
       data: profile
     });
   } catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+    res.status(error.statusCode || 400).json({ status: 'error', message: error.message });
   }
 };
 
@@ -23,6 +23,9 @@ exports.updateProfile = async (req, res) => {
       data: updatedProfile
     });
   } catch (error) {
-    res.status(400).json({ status: 'error', message: error.message });
+    res.status(error.statusCode || 400).json({
+      status: 'error',
+      message: error.message
+    });
   }
 };

@@ -2,6 +2,7 @@ const axios = require('axios');
 const FormData = require('form-data');
 const mealRepository = require('../repositories/meal.repository');
 const aiRepository = require('../repositories/ai.repository');
+const activityRepository = require('../repositories/activity.repository');
 
 const aiClient = axios.create({
   baseURL: process.env.AI_SERVICE_URL || 'http://127.0.0.1:8000/api/v1',
@@ -43,8 +44,10 @@ async function buildProfile(userId, extra) {
     activity_level: row.activity_level || null,
     bmr: num(row.bmr),
     tdee: num(row.tdee),
-    goal: VALID_GOALS.includes(extra.goal) ? extra.goal : null,
-    target_calories: num(extra.target_calories),
+    goal: VALID_GOALS.includes(row.goal)
+      ? row.goal
+      : VALID_GOALS.includes(extra.goal) ? extra.goal : null,
+    target_calories: num(row.target_calories) ?? num(extra.target_calories),
   };
 }
 
@@ -66,6 +69,18 @@ async function buildTodayMeals(userId, date) {
   return Object.values(grouped);
 }
 
+async function buildTodayActivities(userId, date) {
+  const queryDate = /^\d{4}-\d{2}-\d{2}$/.test(date || '')
+    ? date
+    : new Date().toISOString().split('T')[0];
+  const activities = await activityRepository.getByDate(userId, queryDate);
+  return activities.map((activity) => ({
+    activity_type: activity.activity_type,
+    duration_minutes: Number(activity.duration_minutes),
+    calories_burned: Number(activity.calories_burned)
+  }));
+}
+
 exports.chat = async (userId, body = {}) => {
   const message = String(body.message || '').trim();
   if (!message) throw httpError('Vui lòng nhập câu hỏi.', 400);
@@ -80,9 +95,10 @@ exports.chat = async (userId, body = {}) => {
         .map((m) => ({ role: m.role, content: m.content }))
     : [];
 
-  const [profile, todayMeals] = await Promise.all([
+  const [profile, todayMeals, todayActivities] = await Promise.all([
     buildProfile(userId, body),
     buildTodayMeals(userId, body.date),
+    buildTodayActivities(userId, body.date),
   ]);
 
   try {
@@ -91,6 +107,7 @@ exports.chat = async (userId, body = {}) => {
       mode,
       profile,
       today_meals: todayMeals,
+      today_activities: todayActivities,
       history,
     });
     return data; // { reply }

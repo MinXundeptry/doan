@@ -12,6 +12,8 @@ router.use('/admin', adminRoutes);
 router.use('/user', userRoutes);
 router.use('/foods', foodRoutes);
 router.use('/meals', mealRoutes);   // -> Endpoint: /api/v1/meals/...
+router.use('/activities', require('./activity.routes'));
+router.use('/reports', require('./report.routes'));
 router.use('/ai', require('./ai.routes')); // -> Endpoint: /api/v1/ai/...
 
 module.exports = router;

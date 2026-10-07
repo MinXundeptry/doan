@@ -27,8 +27,13 @@ const assignRoleBody = Joi.object({
   .xor('role', 'role_id')
   .unknown(false);
 
+const userStatusBody = Joi.object({
+  is_active: Joi.boolean().required()
+}).unknown(false);
+
 module.exports = {
   idParams,
   listUsersQuery,
-  assignRoleBody
+  assignRoleBody,
+  userStatusBody
 };

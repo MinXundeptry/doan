@@ -41,12 +41,14 @@ class UserRepository {
       weight_kg,
       activity_level,
       bmr,
-      tdee
+      tdee,
+      goal,
+      target_calories
     } = profileData;
 
     const query = `
-      INSERT INTO user_profiles (user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee)
-      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      INSERT INTO user_profiles (user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
     `;
 
     const [result] = await db.query(query, [
@@ -58,7 +60,9 @@ class UserRepository {
       weight_kg,
       activity_level,
       bmr,
-      tdee
+      tdee,
+      goal,
+      target_calories
     ]);
 
     return result.insertId;

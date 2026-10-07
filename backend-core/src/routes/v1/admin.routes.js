@@ -15,6 +15,11 @@ router.get(
   adminController.listUsers
 );
 router.get(
+  '/reports/summary',
+  requirePermission('users:read'),
+  adminController.getSystemReport
+);
+router.get(
   '/users/:id',
   requirePermission('users:read'),
   validate(dto.idParams, 'params'),
@@ -26,6 +31,13 @@ router.patch(
   validate(dto.idParams, 'params'),
   validate(dto.assignRoleBody),
   adminController.updateUserRole
+);
+router.patch(
+  '/users/:id/status',
+  requirePermission('users:assign-role'),
+  validate(dto.idParams, 'params'),
+  validate(dto.userStatusBody),
+  adminController.setUserActiveStatus
 );
 
 router.get('/roles', requirePermission('roles:read'), adminController.listRoles);

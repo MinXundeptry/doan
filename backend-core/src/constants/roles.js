@@ -10,6 +10,10 @@ const PERMISSIONS = Object.freeze({
   MEALS_READ: 'meals:read',
   MEALS_UPDATE: 'meals:update',
   MEALS_DELETE: 'meals:delete',
+  ACTIVITIES_CREATE: 'activities:create',
+  ACTIVITIES_READ: 'activities:read',
+  ACTIVITIES_DELETE: 'activities:delete',
+  REPORTS_READ: 'reports:read',
   AI_USE: 'ai:use'
 });
 
@@ -38,11 +42,14 @@ const ROLE_DEFINITIONS = Object.freeze([
     permissions: Object.freeze([
       PERMISSIONS.PROFILE_READ,
       PERMISSIONS.PROFILE_UPDATE,
-      PERMISSIONS.FOODS_MANAGE,
       PERMISSIONS.MEALS_CREATE,
       PERMISSIONS.MEALS_READ,
       PERMISSIONS.MEALS_UPDATE,
       PERMISSIONS.MEALS_DELETE,
+      PERMISSIONS.ACTIVITIES_CREATE,
+      PERMISSIONS.ACTIVITIES_READ,
+      PERMISSIONS.ACTIVITIES_DELETE,
+      PERMISSIONS.REPORTS_READ,
       PERMISSIONS.AI_USE
     ])
   })
@@ -60,6 +67,10 @@ const PERMISSION_DEFINITIONS = Object.freeze([
   ['Xem bữa ăn', PERMISSIONS.MEALS_READ, 'Xem nhật ký bữa ăn'],
   ['Cập nhật bữa ăn', PERMISSIONS.MEALS_UPDATE, 'Cập nhật món trong bữa ăn'],
   ['Xóa bữa ăn', PERMISSIONS.MEALS_DELETE, 'Xóa món hoặc bữa ăn'],
+  ['Ghi nhận vận động', PERMISSIONS.ACTIVITIES_CREATE, 'Tạo nhật ký vận động cá nhân'],
+  ['Xem vận động', PERMISSIONS.ACTIVITIES_READ, 'Xem nhật ký vận động cá nhân'],
+  ['Xóa vận động', PERMISSIONS.ACTIVITIES_DELETE, 'Xóa mục nhật ký vận động cá nhân'],
+  ['Xem báo cáo cá nhân', PERMISSIONS.REPORTS_READ, 'Xem thống kê dinh dưỡng và vận động cá nhân'],
   ['Sử dụng AI', PERMISSIONS.AI_USE, 'Sử dụng các API AI']
 ].map(([name, slug, description], index) =>
   Object.freeze({ id: index + 1, name, slug, description, is_system: true })

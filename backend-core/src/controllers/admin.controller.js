@@ -1,5 +1,6 @@
 const adminService = require('../services/admin.service');
 const rbacService = require('../services/rbac.service');
+const requestMetrics = require('../middlewares/request-metrics.middleware');
 const { findRoleById } = require('../constants/roles');
 
 const handle = (action, statusCode = 200) => async (req, res, next) => {
@@ -26,11 +27,25 @@ const assignUserRole = handle((req) => {
   return adminService.assignUserRole(req.params.id, roleSlug);
 });
 
+const setUserActiveStatus = handle((req) => {
+  if (Number(req.params.id) === Number(req.user.id)) {
+    const error = new Error('Không thể khóa hoặc mở khóa tài khoản của chính mình.');
+    error.statusCode = 400;
+    throw error;
+  }
+  return adminService.setUserActiveStatus(req.params.id, req.body.is_active);
+});
+
 const adminController = {
   listUsers: handle((req) => adminService.listUsers(req.query)),
   getUser: handle((req) => adminService.getUser(req.params.id)),
+  getSystemReport: handle(async () => ({
+    ...(await adminService.getSystemReport()),
+    performance: requestMetrics.getSnapshot()
+  })),
   assignUserRole,
   updateUserRole: assignUserRole,
+  setUserActiveStatus,
   listRoles: handle(() => rbacService.listRoles()),
   getRole: handle((req) => rbacService.getRole(req.params.id)),
   listPermissions: handle(() => rbacService.listPermissions()),

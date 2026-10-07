@@ -24,7 +24,14 @@ const calculateTDEE = (bmr, activityLevel) => {
   return bmr * multiplier;
 };
 
+const calculateTargetCalories = (tdee, goal, gender) => {
+  const adjustment = goal === 'lose' ? -300 : goal === 'gain' ? 300 : 0;
+  const minimum = gender === 'female' ? 1200 : 1500;
+  return Math.round(Math.max(Number(tdee) + adjustment, minimum));
+};
+
 module.exports = {
   calculateBMR,
-  calculateTDEE
+  calculateTDEE,
+  calculateTargetCalories
 };

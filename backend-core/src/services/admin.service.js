@@ -42,6 +42,16 @@ class AdminService {
     if (!updated) throw createError(404, 'Không tìm thấy người dùng.');
     return this.getUser(userId);
   }
+
+  async setUserActiveStatus(userId, isActive) {
+    const updated = await adminRepository.setUserActiveStatus(userId, isActive);
+    if (!updated) throw createError(404, 'Không tìm thấy người dùng.');
+    return { ...(await this.getUser(userId)), is_active: isActive ? 1 : 0 };
+  }
+
+  getSystemReport() {
+    return adminRepository.getSystemReport();
+  }
 }
 
 module.exports = new AdminService();

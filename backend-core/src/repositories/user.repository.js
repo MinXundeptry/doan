@@ -13,13 +13,22 @@ class UserRepository {
     const [rows] = await pool.query(
       `SELECT u.id, u.email, u.role,
               p.full_name, p.age, p.gender,
-              p.height_cm, p.weight_kg, p.activity_level, p.bmr, p.tdee 
+              p.height_cm, p.weight_kg, p.activity_level, p.bmr, p.tdee,
+              p.goal, p.target_calories
        FROM users u 
        LEFT JOIN user_profiles p ON u.id = p.user_id 
        WHERE u.id = ?`,
       [id]
     );
     return rows[0];
+  }
+
+  async isActive(id) {
+    const [rows] = await pool.query(
+      'SELECT is_active FROM users WHERE id = ? LIMIT 1',
+      [id]
+    );
+    return rows.length > 0 && Number(rows[0].is_active) === 1;
   }
 
   // Tạo tài khoản mới
@@ -33,23 +42,23 @@ class UserRepository {
 
   // Tạo hồ sơ thể trạng người dùng
   async createProfile(profileData) {
-    const { user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee } = profileData;
+    const { user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories } = profileData;
     await pool.query(
       `INSERT INTO user_profiles 
-       (user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee) 
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      [user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee]
+       (user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+      [user_id, full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories]
     );
   }
 
   // Cập nhật hồ sơ thể trạng
   async updateProfile(userId, profileData) {
-    const { full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee } = profileData;
+    const { full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories } = profileData;
     await pool.query(
       `UPDATE user_profiles 
-       SET full_name = ?, age = ?, gender = ?, height_cm = ?, weight_kg = ?, activity_level = ?, bmr = ?, tdee = ?
+       SET full_name = ?, age = ?, gender = ?, height_cm = ?, weight_kg = ?, activity_level = ?, bmr = ?, tdee = ?, goal = ?, target_calories = ?
        WHERE user_id = ?`,
-      [full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, userId]
+      [full_name, age, gender, height_cm, weight_kg, activity_level, bmr, tdee, goal, target_calories, userId]
     );
   }
 }

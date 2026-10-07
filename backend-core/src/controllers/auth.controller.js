@@ -23,7 +23,10 @@ const login = async (req, res) => {
       data: result
     });
   } catch (error) {
-    res.status(401).json({ status: 'error', message: error.message });
+    res.status(error.statusCode || 401).json({
+      status: 'error',
+      message: error.message
+    });
   }
 };
 

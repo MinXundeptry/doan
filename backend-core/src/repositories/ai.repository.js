@@ -3,7 +3,8 @@ const db = require('../config/database');
 class AiRepository {
   async getProfileByUserId(userId) {
     const [rows] = await db.query(
-      `SELECT age, gender, height_cm, weight_kg, activity_level, bmr, tdee
+      `SELECT age, gender, height_cm, weight_kg, activity_level, bmr, tdee,
+              goal, target_calories
        FROM user_profiles WHERE user_id = ?`,
       [userId]
     );

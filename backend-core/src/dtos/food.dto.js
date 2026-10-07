@@ -1,25 +1,29 @@
 const Joi = require('joi');
 
+const foodFields = {
+  name: Joi.string().trim().min(1).max(150),
+  calories: Joi.number().min(0).max(99999.99),
+  protein: Joi.number().min(0).max(9999.99),
+  carbs: Joi.number().min(0).max(9999.99),
+  fat: Joi.number().min(0).max(9999.99),
+  serving_unit: Joi.string().trim().min(1).max(50),
+};
+
 const createFoodDto = Joi.object({
-  name: Joi.string().trim().required().messages({
+  name: foodFields.name.required().messages({
     'string.empty': 'Tên thực phẩm không được để trống',
   }),
-  calories: Joi.number().min(0).default(0),
-  protein: Joi.number().min(0).default(0),
-  carbs: Joi.number().min(0).default(0),
-  fat: Joi.number().min(0).default(0),
-  serving_unit: Joi.string().default('100g'),
+  calories: foodFields.calories.default(0),
+  protein: foodFields.protein.default(0),
+  carbs: foodFields.carbs.default(0),
+  fat: foodFields.fat.default(0),
+  serving_unit: foodFields.serving_unit.default('100g'),
   is_custom: Joi.boolean().default(false),
 });
 
 const updateFoodDto = Joi.object({
-  name: Joi.string().trim(),
-  calories: Joi.number().min(0),
-  protein: Joi.number().min(0),
-  carbs: Joi.number().min(0),
-  fat: Joi.number().min(0),
-  serving_unit: Joi.string(),
-});
+  ...foodFields,
+}).min(1);
 
 module.exports = {
   createFoodDto,

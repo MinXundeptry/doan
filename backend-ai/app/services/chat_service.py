@@ -6,7 +6,12 @@ MAX_HISTORY = 10  # chỉ giữ 10 tin nhắn gần nhất để tiết kiệm q
 
 
 def chat(req: ChatRequest) -> ChatResponse:
-    system_prompt = build_chat_system_prompt(req.profile, req.today_meals, req.mode)
+    system_prompt = build_chat_system_prompt(
+        req.profile,
+        req.today_meals,
+        req.mode,
+        req.today_activities,
+    )
 
     messages = [
         {"role": "user" if m.role == "user" else "model", "text": m.content}

@@ -2,7 +2,7 @@ const bcrypt = require('bcryptjs');
 const jwt = require('jsonwebtoken');
 const { DEFAULT_ROLE } = require('../constants/roles');
 const userRepository = require('../repositories/user.repository');
-const { calculateBMR, calculateTDEE } = require('../utils/nutritionCalc');
+const { calculateBMR, calculateTDEE, calculateTargetCalories } = require('../utils/nutritionCalc');
 
 class AuthService {
   async register(data) {
@@ -24,6 +24,8 @@ class AuthService {
     // 4. Tính toán BMR và TDEE
     const bmr = calculateBMR(gender, weight_kg, height_cm, age);
     const tdee = calculateTDEE(bmr, activity_level);
+    const goal = 'maintain';
+    const target_calories = calculateTargetCalories(tdee, goal, gender);
 
     // 5. Lưu bảng user_profiles
     await userRepository.createProfile({
@@ -35,7 +37,9 @@ class AuthService {
       weight_kg,
       activity_level: activity_level || 'sedentary',
       bmr,
-      tdee
+      tdee,
+      goal,
+      target_calories
     });
 
     return { userId, email };
@@ -52,6 +56,12 @@ class AuthService {
     const isMatch = await bcrypt.compare(password, user.password_hash);
     if (!isMatch) {
       throw new Error('Email hoặc mật khẩu không chính xác!');
+    }
+
+    if (Number(user.is_active) !== 1) {
+      const error = new Error('Tài khoản đã bị khóa. Vui lòng liên hệ quản trị viên.');
+      error.statusCode = 423;
+      throw error;
     }
 
     // 3. Tạo JWT Token

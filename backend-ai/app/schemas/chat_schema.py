@@ -26,12 +26,19 @@ class MealSummary(BaseModel):
     calories: float = 0
 
 
+class ActivitySummary(BaseModel):
+    activity_type: str
+    duration_minutes: int = 0
+    calories_burned: float = 0
+
+
 class ChatRequest(BaseModel):
     message: str = Field(min_length=1, max_length=1000)
     mode: Literal["advice", "menu", "analyze"] = "advice"
     profile: UserProfile | None = None
     history: list[ChatMessage] = []
     today_meals: list[MealSummary] = []
+    today_activities: list[ActivitySummary] = []
 
 
 class ChatResponse(BaseModel):

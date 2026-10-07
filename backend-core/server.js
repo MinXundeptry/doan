@@ -6,6 +6,7 @@ require('dotenv').config({ path: path.join(__dirname, '.env') });
 const pool = require('./src/config/database');
 const routesV1 = require('./src/routes/v1'); // Gọi router trung tâm v1
 const { notFound, handleError } = require('./src/middlewares/error.middleware');
+const requestMetrics = require('./src/middlewares/request-metrics.middleware');
 
 const app = express();
 
@@ -13,6 +14,7 @@ const app = express();
 app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
+app.use(requestMetrics.trackRequest);
 
 // Đăng ký Router v1 duy nhất cho tất cả API
 app.use('/api/v1', routesV1);

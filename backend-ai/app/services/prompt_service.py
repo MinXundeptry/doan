@@ -1,4 +1,4 @@
-from app.schemas.chat_schema import MealSummary, UserProfile
+from app.schemas.chat_schema import ActivitySummary, MealSummary, UserProfile
 
 def get_vision_prompt(
     food_name: str | None = None, amount_gram: float | None = None
@@ -31,6 +31,7 @@ Quy tắc:
 - Chỉ trả lời các chủ đề về dinh dưỡng, thực phẩm, calo, chế độ ăn, cân nặng và vận động liên quan. Câu hỏi ngoài phạm vi thì lịch sự từ chối và hướng về dinh dưỡng.
 - Trả lời bằng tiếng Việt, ngắn gọn, dễ hiểu, thân thiện. Dùng gạch đầu dòng khi liệt kê.
 - Dựa vào thông tin hồ sơ và bữa ăn của người dùng bên dưới để cá nhân hóa. Nếu thiếu thông tin cần thiết (ví dụ chưa có cân nặng, mục tiêu) thì hỏi lại người dùng, không tự bịa số liệu.
+- Phân biệt lượng calo nạp vào với calo tiêu hao khi vận động; số calo vận động chỉ là ước tính và không phải phép đo chính xác.
 - Ưu tiên món ăn quen thuộc với người Việt, dễ tìm, dễ nấu.
 - Không chẩn đoán bệnh hay kê thuốc. Người có bệnh lý hoặc đang mang thai thì khuyên hỏi bác sĩ/chuyên gia dinh dưỡng.
 - Không khuyên ăn quá ít: mức calo mỗi ngày không dưới khoảng 1200 kcal (nữ) hoặc 1500 kcal (nam)."""
@@ -49,7 +50,7 @@ MODE_PROMPTS = {
 }
 
 GENDER_VI = {"male": "Nam", "female": "Nữ"}
-ACTIVITY_VI = {
+ACTIVITY_LEVEL_VI = {
     "sedentary": "ít vận động",
     "lightly_active": "vận động nhẹ",
     "moderately_active": "vận động vừa",
@@ -57,6 +58,14 @@ ACTIVITY_VI = {
 }
 GOAL_VI = {"lose": "giảm cân", "maintain": "duy trì cân nặng", "gain": "tăng cân"}
 MEAL_VI = {"breakfast": "Sáng", "lunch": "Trưa", "dinner": "Tối", "snack": "Ăn nhẹ"}
+EXERCISE_VI = {
+    "walking": "Đi bộ",
+    "running": "Chạy bộ",
+    "cycling": "Đạp xe",
+    "swimming": "Bơi lội",
+    "strength_training": "Tập thể lực",
+    "yoga": "Yoga",
+}
 
 
 def _format_profile(p: UserProfile | None) -> str:
@@ -67,7 +76,7 @@ def _format_profile(p: UserProfile | None) -> str:
         ("Giới tính", GENDER_VI.get(p.gender, p.gender) if p.gender else None),
         ("Chiều cao (cm)", p.height_cm),
         ("Cân nặng (kg)", p.weight_kg),
-        ("Mức vận động", ACTIVITY_VI.get(p.activity_level, p.activity_level) if p.activity_level else None),
+        ("Mức vận động", ACTIVITY_LEVEL_VI.get(p.activity_level, p.activity_level) if p.activity_level else None),
         ("BMR (kcal)", p.bmr),
         ("TDEE (kcal)", p.tdee),
         ("Mục tiêu", GOAL_VI.get(p.goal, p.goal) if p.goal else None),
@@ -88,9 +97,30 @@ def _format_meals(meals: list[MealSummary]) -> str:
         total += m.calories
     return "Bữa ăn hôm nay:\n" + "\n".join(lines) + f"\nTổng đã ăn: ~{total:.0f} kcal"
 
+def _format_activities(activities: list[ActivitySummary]) -> str:
+    if not activities:
+        return "Vận động hôm nay: chưa ghi nhận hoạt động nào."
+    lines = []
+    total = 0.0
+    for activity in activities:
+        name = EXERCISE_VI.get(activity.activity_type, activity.activity_type)
+        lines.append(
+            f"- {name}: {activity.duration_minutes} phút "
+            f"(ước tính ~{activity.calories_burned:.0f} kcal tiêu hao)"
+        )
+        total += activity.calories_burned
+    return (
+        "Vận động hôm nay:\n"
+        + "\n".join(lines)
+        + f"\nTổng tiêu hao ước tính khi vận động: ~{total:.0f} kcal"
+    )
+
 
 def build_chat_system_prompt(
-    profile: UserProfile | None, today_meals: list[MealSummary], mode: str
+    profile: UserProfile | None,
+    today_meals: list[MealSummary],
+    mode: str,
+    today_activities: list[ActivitySummary] | None = None,
 ) -> str:
     return "\n\n".join(
         [
@@ -98,5 +128,6 @@ def build_chat_system_prompt(
             MODE_PROMPTS[mode],
             _format_profile(profile),
             _format_meals(today_meals),
+            _format_activities(today_activities or []),
         ]
     )
