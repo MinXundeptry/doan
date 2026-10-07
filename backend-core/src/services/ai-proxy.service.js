@@ -53,9 +53,10 @@ async function buildTodayMeals(userId, date) {
     ? date
     : new Date().toISOString().split('T')[0];
 
-  const rows = await mealRepository.findByDate(userId, queryDate);
+  const rows = await mealRepository.getMealsByDate(userId, queryDate);
   const grouped = {};
   for (const r of rows) {
+    if (!r.food_name) continue;
     if (!grouped[r.meal_type]) {
       grouped[r.meal_type] = { meal_type: r.meal_type, foods: [], calories: 0 };
     }
@@ -98,11 +99,26 @@ exports.chat = async (userId, body = {}) => {
   }
 };
 
-exports.analyzeFoodImage = async (file) => {
+exports.analyzeFoodImage = async (file, options = {}) => {
   if (!file) throw httpError('Vui lòng chọn ảnh món ăn.', 400);
+
+  const foodName = String(options.food_name || '').trim();
+  if (foodName.length > 120) {
+    throw httpError('Tên món ăn không được quá 120 ký tự.', 400);
+  }
+
+  const amountValue = options.amount_gram;
+  const amountGram = amountValue === undefined || amountValue === null || amountValue === ''
+    ? null
+    : Number(amountValue);
+  if (amountGram !== null && (!Number.isFinite(amountGram) || amountGram <= 0 || amountGram > 9999.99)) {
+    throw httpError('amount_gram phải lớn hơn 0 và không quá 9999.99.', 400);
+  }
 
   const form = new FormData();
   form.append('file', file.buffer, { filename: file.originalname, contentType: file.mimetype });
+  if (foodName) form.append('food_name', foodName);
+  if (amountGram !== null) form.append('amount_gram', String(amountGram));
 
   try {
     const { data } = await aiClient.post('/vision/analyze', form, {
