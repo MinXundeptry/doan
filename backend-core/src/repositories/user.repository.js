@@ -1,4 +1,5 @@
 const pool = require('../config/database');
+const { DEFAULT_ROLE } = require('../constants/roles');
 
 class UserRepository {
   // Tìm người dùng theo Email
@@ -10,7 +11,8 @@ class UserRepository {
   // Tìm người dùng theo ID
   async findById(id) {
     const [rows] = await pool.query(
-      `SELECT u.id, u.email, u.role, p.full_name, p.age, p.gender, 
+      `SELECT u.id, u.email, u.role,
+              p.full_name, p.age, p.gender,
               p.height_cm, p.weight_kg, p.activity_level, p.bmr, p.tdee 
        FROM users u 
        LEFT JOIN user_profiles p ON u.id = p.user_id 
@@ -21,7 +23,7 @@ class UserRepository {
   }
 
   // Tạo tài khoản mới
-  async createUser(email, passwordHash, role = 'user') {
+  async createUser(email, passwordHash, role = DEFAULT_ROLE) {
     const [result] = await pool.query(
       'INSERT INTO users (email, password_hash, role) VALUES (?, ?, ?)',
       [email, passwordHash, role]
