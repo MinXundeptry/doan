@@ -8,7 +8,6 @@ class RegisterDto {
     this.height_cm = Number(data.height_cm);
     this.weight_kg = Number(data.weight_kg);
     this.activity_level = data.activity_level || 'sedentary';
-    this.role = data.role || 'user';
   }
 }
 

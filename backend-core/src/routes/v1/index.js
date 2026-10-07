@@ -5,8 +5,10 @@ const authRoutes = require('./auth.routes');
 const userRoutes = require('./user.routes');
 const foodRoutes = require('./food.routes');
 const mealRoutes = require('./meal.routes');
+const adminRoutes = require('./admin.routes');
 
 router.use('/auth', authRoutes);
+router.use('/admin', adminRoutes);
 router.use('/user', userRoutes);
 router.use('/foods', foodRoutes);
 router.use('/meals', mealRoutes);   // -> Endpoint: /api/v1/meals/...
